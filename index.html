@@ -256,27 +256,22 @@
         updatePreview();
     }
 
-    // 格式化时间字符串
-    function formatTimeStr(dateTimeStr, isOutTime) {
+    // 格式化时间字符串：统一 "6月7日 14:30" 格式
+    function formatTimeStr(dateTimeStr) {
         if (!dateTimeStr) return "";
         const d = new Date(dateTimeStr.replace('T', ' '));
         const m = d.getMonth() + 1;
         const day = d.getDate();
         const h = String(d.getHours()).padStart(2, '0');
         const min = String(d.getMinutes()).padStart(2, '0');
-        
-        if(isOutTime) {
-            return `${day}号${h}点${min}分`;
-        } else {
-            return `${m}月${day}日${parseInt(h)}:${min}分`;
-        }
+        return `${m}月${day}日 ${h}:${min}`;
     }
 
     // 核心文本拼接（这里已经把艾特人完全固定写死，并且加了微信所需的尾随空格）
     function generateText() {
         const carNumber = document.getElementById('carNumber').value.trim();
-        const inTime = formatTimeStr(document.getElementById('inTime').value, false);
-        const outTime = formatTimeStr(document.getElementById('outTime').value, true);
+        const inTime = formatTimeStr(document.getElementById('inTime').value);
+        const outTime = formatTimeStr(document.getElementById('outTime').value);
         const inLocation = document.querySelector('input[name="inLocation"]:checked').value;
         const outLocation = document.querySelector('input[name="outLocation"]:checked').value;
         const releaseType = document.querySelector('input[name="releaseType"]:checked').value;
