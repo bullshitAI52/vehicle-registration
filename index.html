@@ -267,16 +267,23 @@
         return `${m}月${day}日 ${h}:${min}`;
     }
 
-    // 核心文本拼接（这里已经把艾特人完全固定写死，并且加了微信所需的尾随空格）
+    // 核心文本拼接
     function generateText() {
         const carNumber = document.getElementById('carNumber').value.trim();
         const inTime = formatTimeStr(document.getElementById('inTime').value);
         const outTime = formatTimeStr(document.getElementById('outTime').value);
-        const inLocation = document.querySelector('input[name="inLocation"]:checked').value;
-        const outLocation = document.querySelector('input[name="outLocation"]:checked').value;
-        const releaseType = document.querySelector('input[name="releaseType"]:checked').value;
+        const inLocEl = document.querySelector('input[name="inLocation"]:checked');
+        const outLocEl = document.querySelector('input[name="outLocation"]:checked');
+        const releaseEl = document.querySelector('input[name="releaseType"]:checked');
 
-        return `(${carNumber})这辆车(${inTime})(${inLocation})进来，(${outTime})从(${outLocation})(${releaseType})出去 @物业部-黎莹 @物业～小蔡 `;
+        const inLoc = inLocEl ? inLocEl.value : '';
+        const outLoc = outLocEl ? outLocEl.value : '';
+        const release = releaseEl ? releaseEl.value : '';
+
+        const inPart = [inTime, inLoc].filter(Boolean).join(' ');
+        const outPart = [outTime, outLoc, release].filter(Boolean).join(' ');
+
+        return `${carNumber} ${inPart}进来，${outPart}出去 @物业部-黎莹 @物业～小蔡 `;
     }
 
     function updatePreview() {
