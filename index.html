@@ -50,17 +50,37 @@
         /* 车牌快捷键 */
         .quick-tags {
             display: flex;
-            gap: 8px;
+            flex-wrap: wrap;
+            gap: 6px;
             margin-top: 8px;
         }
         .tag {
             background: #f0f0f0;
-            padding: 6px 12px;
+            padding: 5px 10px;
             border-radius: 6px;
             font-size: 14px;
             font-weight: bold;
             color: #444;
+            cursor: pointer;
         }
+        .tag:active { background: #e0e0e0; }
+        .tag.toggle-btn {
+            background: #fff;
+            border: 1px dashed #ccc;
+            color: #888;
+            font-weight: normal;
+            font-size: 13px;
+        }
+        .province-panel {
+            display: none;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 10px;
+        }
+        .province-panel.show { display: flex; }
         /* 选项组按钮化 */
         .radio-tile-group {
             display: flex;
@@ -165,6 +185,10 @@
             <div class="tag" onclick="setPrefix('粤')">粤</div>
             <div class="tag" onclick="setPrefix('京')">京</div>
             <div class="tag" onclick="setPrefix('沪')">沪</div>
+            <div class="tag toggle-btn" onclick="toggleProvince()">更多 ▼</div>
+            <div class="tag" onclick="document.getElementById('carNumber').value='';updatePreview()" style="background:#fee;color:#c0392b;">清空</div>
+        </div>
+        <div class="province-panel" id="provincePanel">
             <div class="tag" onclick="setPrefix('津')">津</div>
             <div class="tag" onclick="setPrefix('渝')">渝</div>
             <div class="tag" onclick="setPrefix('冀')">冀</div>
@@ -192,7 +216,6 @@
             <div class="tag" onclick="setPrefix('宁')">宁</div>
             <div class="tag" onclick="setPrefix('新')">新</div>
             <div class="tag" onclick="setPrefix('蒙')">蒙</div>
-            <div class="tag" onclick="document.getElementById('carNumber').value='';updatePreview()" style="background:#fee;color:#c0392b;">清空</div>
         </div>
     </div>
 
@@ -276,6 +299,15 @@
     const currentPhoneTime = getLocalDateTimeString();
     document.getElementById('inTime').value = currentPhoneTime;
     document.getElementById('outTime').value = currentPhoneTime;
+
+    // 展开/收起省份选择面板
+    function toggleProvince() {
+        const panel = document.getElementById('provincePanel');
+        const btn = document.querySelector('.toggle-btn');
+        const show = !panel.classList.contains('show');
+        panel.classList.toggle('show');
+        btn.textContent = show ? '收起 ▲' : '更多 ▼';
+    }
 
     // 快捷切换车牌省份简称，保留后面手动输入的后缀
     function setPrefix(prefix) {
