@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>物业车辆报备</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 16px;
+            color: #333;
+            -webkit-user-select: none;
+        }
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 16px;
+        }
+        h3 { margin-top: 0; margin-bottom: 18px; text-align: center; color: #111; font-size: 18px; }
+        .form-item {
+            margin-bottom: 16px;
+        }
+        .form-item label {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        input[type="text"], input[type="datetime-local"] {
+            width: 100%;
+            height: 46px;
+            padding: 0 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: #fafafa;
+            -webkit-appearance: none;
+        }
+        input:focus {
+            border-color: #07c160;
+            background: #fff;
+            outline: none;
+        }
+        /* 车牌快捷键 */
+        .quick-tags {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .tag {
+            background: #f0f0f0;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #444;
+        }
+        /* 选项组按钮化 */
+        .radio-tile-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .radio-tile {
+            flex: 1;
+            min-width: 80px;
+            position: relative;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .radio-tile input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            cursor: pointer;
+        }
+        .radio-tile span {
+            color: #333;
+            text-align: center;
+            padding: 0 4px;
+        }
+        /* 选中状态样式 */
+        .radio-tile:has(input:checked) {
+            border-color: #07c160;
+            background: #f0fbf5;
+        }
+        .radio-tile:has(input:checked) span {
+            color: #07c160;
+            font-weight: bold;
+        }
+        /* 老旧手机浏览器降级兼容 */
+        .radio-tile input:checked + span {
+            color: #07c160;
+            font-weight: bold;
+        }
+        /* 预览与按钮 */
+        .preview-title { font-size: 14px; color: #666; margin-bottom: 6px; }
+        .preview-area {
+            background: #f8f8f8;
+            border: 1px solid #eaeaea;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 15px;
+            line-height: 1.5;
+            min-height: 70px;
+            white-space: pre-wrap;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        .btn-submit {
+            width: 100%;
+            height: 50px;
+            background: #07c160;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 17px;
+            font-weight: bold;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(7, 193, 96, 0.2);
+        }
+        .btn-submit:active { background: #06ad56; }
+        /* 提示框 */
+        .toast {
+            position: fixed;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.85);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 24px;
+            font-size: 15px;
+            display: none;
+            z-index: 999;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h3>车辆报备登记</h3>
+    
+    <div class="form-item">
+        <label>车牌号</label>
+        <input type="text" id="carNumber" placeholder="请输入车牌号" value="闽ED17769">
+        <div class="quick-tags">
+            <div class="tag" onclick="addPrefix('闽ED')">+ 闽ED</div>
+            <div class="tag" onclick="document.getElementById('carNumber').value=''">清空</div>
+        </div>
+    </div>
+
+    <div class="form-item">
+        <label>进来时间 (默认手机当前时间)</label>
+        <input type="datetime-local" id="inTime">
+    </div>
+
+    <div class="form-item">
+        <label>出去时间 (默认手机当前时间)</label>
+        <input type="datetime-local" id="outTime">
+    </div>
+
+    <div class="form-item">
+        <label>入口地点</label>
+        <div class="radio-tile-group">
+            <div class="radio-tile">
+                <input type="radio" name="inLocation" value="1A入口" checked>
+                <span>1A入口</span>
+            </div>
+            <div class="radio-tile">
+                <input type="radio" name="inLocation" value="2A入口">
+                <span>2A入口</span>
+            </div>
+            <div class="radio-tile">
+                <input type="radio" name="inLocation" value="1C地库入口">
+                <span>1C地库入口</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-item">
+        <label>出口地点</label>
+        <div class="radio-tile-group">
+            <div class="radio-tile">
+                <input type="radio" name="outLocation" value="地面" checked>
+                <span>地面</span>
+            </div>
+            <div class="radio-tile">
+                <input type="radio" name="outLocation" value="地库">
+                <span>地库</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-item">
+        <label>放行方式</label>
+        <div class="radio-tile-group">
+            <div class="radio-tile">
+                <input type="radio" name="releaseType" value="手动" checked>
+                <span>手动</span>
+            </div>
+            <div class="radio-tile">
+                <input type="radio" name="releaseType" value="自动识别">
+                <span>自动识别</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="preview-title">微信复制预览：</div>
+<div class="preview-area" id="previewText"></div>
+
+<button class="btn-submit" onclick="copyAndGo()">一键复制 + 去微信粘贴</button>
+
+<div class="toast" id="toast">复制成功！<br>请去微信群长按粘贴</div>
+
+<script>
+    // 获取当前手机本地时间并格式化为 YYYY-MM-DDTHH:MM
+    function getLocalDateTimeString() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    // 初始化时间
+    const currentPhoneTime = getLocalDateTimeString();
+    document.getElementById('inTime').value = currentPhoneTime;
+    document.getElementById('outTime').value = currentPhoneTime;
+
+    // 快捷输入车牌前缀
+    function addPrefix(str) {
+        const input = document.getElementById('carNumber');
+        if(!input.value.startsWith(str)){
+            input.value = str + input.value.replace(/^[^\x00-\xff]+/g, ''); 
+        }
+        updatePreview();
+    }
+
+    // 格式化时间字符串
+    function formatTimeStr(dateTimeStr, isOutTime) {
+        if (!dateTimeStr) return "";
+        const d = new Date(dateTimeStr.replace('T', ' '));
+        const m = d.getMonth() + 1;
+        const day = d.getDate();
+        const h = String(d.getHours()).padStart(2, '0');
+        const min = String(d.getMinutes()).padStart(2, '0');
+        
+        if(isOutTime) {
+            return `${day}号${h}点${min}分`;
+        } else {
+            return `${m}月${day}日${parseInt(h)}:${min}分`;
+        }
+    }
+
+    // 核心文本拼接（这里已经把艾特人完全固定写死，并且加了微信所需的尾随空格）
+    function generateText() {
+        const carNumber = document.getElementById('carNumber').value.trim();
+        const inTime = formatTimeStr(document.getElementById('inTime').value, false);
+        const outTime = formatTimeStr(document.getElementById('outTime').value, true);
+        const inLocation = document.querySelector('input[name="inLocation"]:checked').value;
+        const outLocation = document.querySelector('input[name="outLocation"]:checked').value;
+        const releaseType = document.querySelector('input[name="releaseType"]:checked').value;
+
+        return `(${carNumber})这辆车(${inTime})(${inLocation})进来，(${outTime})从(${outLocation})(${releaseType})出去 @物业部-黎莹 @物业～小蔡 `;
+    }
+
+    function updatePreview() {
+        document.getElementById('previewText').innerText = generateText();
+    }
+
+    // 监听所有输入框和按钮的变化
+    document.querySelectorAll('input').forEach(item => {
+        item.addEventListener('input', updatePreview);
+        item.addEventListener('change', updatePreview);
+    });
+
+    // 一键复制功能
+    function copyAndGo() {
+        const text = generateText();
+        
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToastAndRedirect();
+            }).catch(() => {
+                fallbackCopy(text);
+            });
+        } else {
+            fallbackCopy(text);
+        }
+    }
+
+    function fallbackCopy(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed"; 
+        document.body.appendChild(textArea);
+        textArea.select();
+        textArea.setSelectionRange(0, 99999);
+        try {
+            document.execCommand('copy');
+            showToastAndRedirect();
+        } catch (err) {
+            alert('复制失败，请长按下方预览框手动复制');
+        }
+        document.body.removeChild(textArea);
+    }
+
+    function showToastAndRedirect() {
+        const toast = document.getElementById('toast');
+        toast.style.display = 'block';
+        setTimeout(() => {
+            toast.style.display = 'none';
+            window.location.href = "weixin://";
+        }, 1200);
+    }
+
+    // 首次加载页面自动生成一次预览
+    updatePreview();
+</script>
+</body>
+</html>
