@@ -280,7 +280,7 @@
         const outLoc = outLocEl ? outLocEl.value : '';
         const release = releaseEl ? releaseEl.value : '';
 
-        const inPart = [inTime, inLoc].filter(Boolean).join(' ');
+        const inPart = inTime;
         const outPart = [outTime, outLoc, release].filter(Boolean).join(' ');
 
         return `${carNumber} ${inPart}进来，${outPart}出去 @物业部-黎莹 @物业～小蔡 `;
